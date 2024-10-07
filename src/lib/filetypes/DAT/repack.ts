@@ -9,13 +9,13 @@ async function repack(data: FileData) : Promise<ArrayBuffer> {
     const hashMap = generateDATHash(data.files);
     // --- Generate File Extensions (do some sanity checks)
     const fileExtTable = textEncoder.encode(
-        data.files.map((x) => {
+        data.files.map((x: FileData['files']) => {
             let ext = x.name.split(".").pop() || "";
             return ext + new Array(4 - ext.length).fill('\0').join('')
         }).join('')
         ).buffer;
     // --- Generate File Names
-    const nameLength = data.files.map((x) => x.name.length + 1).reduce((a, b) => Math.max(a, b));
+    const nameLength = data.files.map((x: FileData['files']) => x.name.length + 1).reduce((a: number, b: number) => Math.max(a, b));
     let fileNameStr = ""
     for (let i = 0; i < data.files.length; i++) {
         fileNameStr += data.files[i].name;
@@ -23,7 +23,7 @@ async function repack(data: FileData) : Promise<ArrayBuffer> {
     }
     const fileNameTable = concatArrayBuffer(Uint32Array.from([nameLength]).buffer, textEncoder.encode(fileNameStr).buffer);
     // --- Generate File Sizes
-    const fileSizeTable = Uint32Array.from(data.files.map((x) => x.arrayBuffer.byteLength)).buffer;
+    const fileSizeTable = Uint32Array.from(data.files.map((x: any) => x.arrayBuffer.byteLength)).buffer;
 
     // --- Compute size of the new DAT file
     const headerSize =
@@ -37,6 +37,8 @@ async function repack(data: FileData) : Promise<ArrayBuffer> {
     // --- Generate File Offsets
     const fileOffsets32Array = new Uint32Array(data.files.length);
     let fileOffset = headerSize;
+    // NieR Switch's DTT files start at intervals of 0x200
+    fileOffset = (Math.ceil(fileOffset / 0x200)) * 0x200
     for (let i = 0; i < data.files.length; i++) {
         fileOffset = Math.ceil(fileOffset / 16) * 16;
         fileOffsets32Array[i] = data.files[i].arrayBuffer.byteLength === 0 ? 0 : fileOffset;

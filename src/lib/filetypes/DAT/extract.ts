@@ -68,7 +68,6 @@ async function extract(file: PlatinumFileReader): Promise<FileData> {
     }
     
     // --- Hash table does not need to be stored (see hashing function shamelessly copied from B2N)
-    console.log(new Uint8Array(arrayBuffer)[96]);
     return {
         files: fileNameTable.map((name, i) => {
             return {
