@@ -27,7 +27,14 @@ async function convert(file: File): Promise<ArrayBuffer> {
                 if (wtp === undefined) throw new Error('Missing WTP file');
 
                 console.log(`Converting ${wta.name} (${wta.arrayBuffer.byteLength}b), ${wtp.name} (${wtp.arrayBuffer.byteLength}b) - ${key}`);
-                const [wtaArrayBuffer, wtpArrayBuffer] = await convertWTA(wta.arrayBuffer, wtp.arrayBuffer);
+                
+                let forceASTC = false;
+                if (key.includes('ui/') || key.includes('font/')) {
+                    forceASTC = true;
+                    console.log("Forcing ASTC");
+                }
+                
+                const [wtaArrayBuffer, wtpArrayBuffer] = await convertWTA(wta.arrayBuffer, wtp.arrayBuffer, forceASTC);
                 wta.arrayBuffer = wtaArrayBuffer;
                 wtp.arrayBuffer = wtpArrayBuffer;
                 console.log("Convert success");

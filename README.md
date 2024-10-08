@@ -17,3 +17,6 @@ A one click NieR to Switch converter that runs in your browser, built off previo
   - Repack WTP texture data
 - Repack DAT/DTTs
 - Repack ZIP
+
+## Credits
+- daoo's [astcrt](https://github.com/daoo/astcrt) and typed's [modifications for proper transparency](https://github.com/typed/astcrt)

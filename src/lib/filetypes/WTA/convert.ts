@@ -1,6 +1,7 @@
 import PlatinumFileReader from "../PlatinumFileReader";
 import { concatArrayBuffer } from "../arrayBufferTools";
 import { compressImageData } from "./lib/tegrax1swizzle";
+import DDStoASTC from './lib/DDStoASTC';
 
 const formats = {
 	// DDS
@@ -190,7 +191,7 @@ export async function convert_full(wtaFile: ArrayBuffer, wtpFile: ArrayBuffer): 
     return [concatArrayBuffer(header, infos, paddingBuffer), concatArrayBuffer(...textureImageBuffers)]
 }
 
-export default async function convert(wtaFile: ArrayBuffer, wtpFile: ArrayBuffer): Promise<[ArrayBuffer, ArrayBuffer]> {
+export default async function convert(wtaFile: ArrayBuffer, wtpFile: ArrayBuffer, forceASTC=false): Promise<[ArrayBuffer, ArrayBuffer]> {
     let wta = new PlatinumFileReader(wtaFile);
     let magic = await wta.readString(0, 4);
 
@@ -261,6 +262,23 @@ export default async function convert(wtaFile: ArrayBuffer, wtpFile: ArrayBuffer
         }
 
         let imageData = texture.slice(0x80);
+        if (forceASTC) {
+            // convert to ASTC
+            textureInfo.format = 0x87 // ASTC_4x4_UNORM
+            let possibleImageData = DDStoASTC(
+                formats[textureInfo.format as never],
+                textureInfo.width,
+                textureInfo.height,
+                textureInfo.depth,
+                imageData
+            )
+            if (possibleImageData === null) {
+                throw new Error('Failed to convert image data to ASTC');
+            }
+            imageData = possibleImageData
+            console.log("ASTC conversion success");
+        }
+
         let buffer = compressImageData(
             formats[textureInfo.format as never],
             textureInfo.width,
